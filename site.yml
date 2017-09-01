@@ -1,0 +1,12 @@
+- hosts: all
+  become: yes
+  vars:
+    AGENT:
+      redis_host: siem.8pwkcy.0001.euc1.cache.amazonaws.com
+      manager_host: 172.31.47.226
+      profile: default
+  roles:
+    - { role: install-wazuh-agent }
+    - { role: install-redis-cli }
+    - { role: configure-wazuh-agent, _agent: "{{ AGENT }}" }
+    - { role: install-snort-sniffer, _agent: "{{ AGENT }}" }

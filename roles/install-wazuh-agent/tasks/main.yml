@@ -1,0 +1,7 @@
+---
+
+- name: Install Wazuh Agent
+  yum:
+    name: https://ossec.wazuh.com/el/7/x86_64/ossec-hids-agent-2.8.3-4.el7.x86_64.rpm
+    enablerepo: epel
+    state: present

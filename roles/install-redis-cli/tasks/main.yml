@@ -1,0 +1,42 @@
+---
+
+- name: Install make & gcc
+  yum:
+    name: "{{ item }}"
+    enablerepo: epel
+    state: present
+  with_items:
+    - gcc
+    - make
+
+- name: check if redis-cli installed
+  stat: path=/usr/local/bin/redis-cli
+  register: redis_cli
+
+- name: Download redis source
+  unarchive:
+    src: http://download.redis.io/releases/redis-3.2.8.tar.gz
+    dest: /tmp
+    remote_src: true
+  when: not redis_cli.stat.exists
+
+- name: clean dist
+  become: yes
+  make:
+    chdir: /tmp/redis-3.2.8
+    target: distclean
+  when: redis_cli.stat.exists == false
+
+- name: compile redis
+  become: yes
+  make:
+    chdir: /tmp/redis-3.2.8
+  when: redis_cli.stat.exists == false
+
+- name: copy redis-cli to local/bin
+  copy:
+    src: /tmp/redis-3.2.8/src/redis-cli
+    dest: /usr/local/bin/redis-cli
+    remote_src: true
+    mode: a+x
+  when: redis_cli.stat.exists == false

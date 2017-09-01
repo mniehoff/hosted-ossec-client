@@ -1,0 +1,31 @@
+---
+
+- name: Install tcpdump, inotify-tools
+  yum:
+    name: "{{ item }}"
+    enablerepo: epel
+    state: present
+  with_items:
+    - inotify-tools
+    - tcpdump
+
+- name: Ensures /var/snort dir exists
+  file: path=/var/snort state=directory
+
+- name: Transfer dump script
+  template:
+    src: tcp2redis.sh.j2
+    dest: /var/snort/tcp2redis.sh
+    mode: a+x
+
+- name: Transfer service script
+  copy:
+    src: tcp2redis_service.sh
+    dest: "/etc/init.d/tcp2redis"
+    mode: a+x
+
+- name: start tcp2redis service
+  service:
+    name: tcp2redis
+    state: started
+    enabled: yes

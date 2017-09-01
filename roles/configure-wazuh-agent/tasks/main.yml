@@ -1,0 +1,42 @@
+---
+## Agent config
+- name: Backup original config
+  copy:
+    remote_src: true
+    src: /var/ossec/etc/ossec.conf
+    dest: /var/ossec/etc/ossec.conf.orig
+
+- name: create new config
+  template:
+    src: ossec.conf.j2
+    dest: /var/ossec/etc/ossec.conf
+
+## Agent registration
+- name: check if agent already authenticated
+  stat: path=/var/ossec/authenticated
+  register: authenticated
+
+- name: register agent
+  command: /var/ossec/bin/agent-auth -m {{ _agent.manager_host }}
+  when: not authenticated.stat.exists
+
+- name: create authenticated file
+  copy:
+    dest: /var/ossec/authenticated
+    content: ""
+  when: not authenticated.stat.exists
+
+## Agent restart
+- name: check if agent already restarted
+  stat: path=/var/ossec/restarted
+  register: restarted
+
+- name: restart agent
+  command: /var/ossec/bin/ossec-control restart
+  when: not restarted.stat.exists
+
+- name: create restarted file
+  copy:
+    dest: /var/ossec/restarted
+    content: ""
+  when: not restarted.stat.exists

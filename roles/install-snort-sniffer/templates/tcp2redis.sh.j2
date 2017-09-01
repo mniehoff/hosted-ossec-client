@@ -1,0 +1,14 @@
+#!/bin/bash
+export REDIS_HOST="{{ _agent.redis_host }}"
+export TPATH="/root/tcpdump"
+
+mkdir -p "$TPATH"
+
+inotifywait -mrq -e close_write --format %w%f "$TPATH/" | while read FILE
+do
+  	/usr/local/bin/redis-cli -h "$REDIS_HOST" -x HSET "$(basename $FILE)" pcap < "$FILE"
+        echo "$FILE closed and stored as $(basename $FILE) in $REDIS_HOST"
+done &
+
+ /usr/sbin/tcpdump -G 3 -C 1 -i eth0 -K -nn -Z root -w "$TPATH/trace-h2-$(hostname)-%Y-%m-%d_%H:%M:%S.pcap" "(dst ! $REDIS_HOST)" &
+  echo "recording ..."
